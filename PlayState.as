@@ -16,8 +16,10 @@ package
 		private var gravityButton:FlxButton;
 		private var quitButton:FlxButton;
 		
-		//The group we'll store some walls in
-		private var wallsGroup:FlxGroup;
+		//some walls stuff
+		private var collisionGroup:FlxGroup;
+		private var wall:FlxSprite;
+		private var floor:FlxSprite;
 		
 		//We'll use these to track the current state of gravity and collision
 		private var isGravityOn:Boolean   = false;
@@ -78,27 +80,27 @@ package
 			add(topText);
 			
 			//Lets setup some walls for our pixels to collide against
-			wallsGroup = new FlxGroup();
-			var wall:FlxSprite = new FlxSprite(100, 100);
+			collisionGroup = new FlxGroup();
+			wall= new FlxSprite(100, 100);
 			wall.makeGraphic(10, 100, 0x50FFFFFF);//Make it darker - easier on the eyes :)
 			wall.visible = wall.solid = false;//Set both the visibility AND the solidity to false, in one go
 			wall.immovable = true;//Lets make sure the pixels don't push out wall away! (though it does look funny)
-			wallsGroup.add(wall);
+			collisionGroup.add(wall);
 			//Duplicate our wall but this time it's a floor to catch gravity affected particles
-			wall = new FlxSprite(10, 267);
-			wall.makeGraphic(FlxG.width - 20, 10, 0x50FFFFFF);
-			wall.visible = wall.solid = false;
-			wall.immovable = true;
-			wallsGroup.add(wall);
-
-                        //Please note that this demo makes the walls themselves not collide, for the sake of simplicity.
-                        //Normally you would make the particles have solid = true or false to make them collide or not on creation,
-                        //because in a normal environment your particles probably aren't going to change solidity at a mouse 
-                        //click. If they did, you would probably be better suited with emitter.setAll("solid", true)
-                        //I just don't feel that setAll is applicable here(Since I would still have to toggle the walls anyways)
+			floor = new FlxSprite(10, 267);
+			floor.makeGraphic(FlxG.width - 20, 10, 0x50FFFFFF);
+			floor.visible = floor.solid = false;
+			floor.immovable = true;
+			collisionGroup.add(floor);
+			
+            //Please note that this demo makes the walls themselves not collide, for the sake of simplicity.
+            //Normally you would make the particles have solid = true or false to make them collide or not on creation,
+            //because in a normal environment your particles probably aren't going to change solidity at a mouse 
+            //click. If they did, you would probably be better suited with emitter.setAll("solid", true)
+            //I just don't feel that setAll is applicable here(Since I would still have to toggle the walls anyways)
 			
 			//Don't forget to add the group to the state(Like I did :P)
-			add(wallsGroup);
+			add(collisionGroup);
 			
 			//Now lets set our emitter free.
 			//Params:        Explode, Particle Lifespan, Emit rate(in seconds)
@@ -116,7 +118,7 @@ package
 				topText.alpha -= .01;
 			}
 			super.update();
-			FlxG.collide(theEmitter, wallsGroup);
+			FlxG.collide(theEmitter, collisionGroup);
 		}
 		
 		//This is run when you flip the collision
@@ -124,20 +126,20 @@ package
 			isCollisionOn = !isCollisionOn;
 			if (isCollisionOn) {
 				if (isGravityOn) {
-					FlxSprite(wallsGroup.members[1]).solid = true;    //Set the floor to the 'active' collision barrier
-					FlxSprite(wallsGroup.members[1]).visible = true;
-					FlxSprite(wallsGroup.members[0]).solid = false;
-					FlxSprite(wallsGroup.members[0]).visible = false;
+					floor.solid = true;    //Set the floor to the 'active' collision barrier
+					floor.visible = true;
+					wall.solid = false;
+					wall.visible = false;
 				}else {
-					FlxSprite(wallsGroup.members[1]).solid = false;   //Set the wall to the 'active' collision barrier
-					FlxSprite(wallsGroup.members[1]).visible = false;
-					FlxSprite(wallsGroup.members[0]).solid = true;
-					FlxSprite(wallsGroup.members[0]).visible = true;
+					floor.solid = false;   //Set the wall to the 'active' collision barrier
+					floor.visible = false;
+					wall.solid = true;
+					wall.visible = true;
 				}
 				topText.text = "Collision: ON";
 			}else {
-				//Turn off all of the walls, completely
-				FlxSprite(wallsGroup.members[0]).solid = FlxSprite(wallsGroup.members[1]).solid = FlxSprite(wallsGroup.members[0]).visible = FlxSprite(wallsGroup.members[1]).visible = false;
+				//Turn off the wall and floor, completely
+				wall.solid = floor.solid = wall.visible = floor.visible = false;
 				topText.text = "Collision: OFF";
 			}
 			topText.alpha = 1;
@@ -150,24 +152,24 @@ package
 			if (isGravityOn) {
 				theEmitter.gravity = 200;
 				if (isCollisionOn){
-					FlxSprite(wallsGroup.members[1]).visible = true;
-					FlxSprite(wallsGroup.members[1]).solid = true;
-					FlxSprite(wallsGroup.members[0]).visible = false;
-					FlxSprite(wallsGroup.members[0]).solid = false;
+					floor.visible = true;
+					floor.solid = true;
+					wall.visible = false;
+					wall.solid = false;
 				}
 				//Just for the sake of completeness let's go ahead and make this change happen 
 				//to all of the currently emitted particles as well.
 				for (var i:int = 0; i < theEmitter.members.length; i++) {
-					FlxParticle(theEmitter.members[i]).acceleration.y = 200;
+					FlxParticle(theEmitter.members[i]).acceleration.y = 200; //Cast the pixel from the emitter as a particle so we can use it
 				}
 				topText.text = "Gravity: ON";
 			}else {
 				theEmitter.gravity = 0;
 				if (isCollisionOn){
-					FlxSprite(wallsGroup.members[0]).visible = true;
-					FlxSprite(wallsGroup.members[0]).solid = true;
-					FlxSprite(wallsGroup.members[1]).visible = false;
-					FlxSprite(wallsGroup.members[1]).solid = false;
+					wall.visible = true;
+					wall.solid = true;
+					floor.visible = false;
+					floor.solid = false;
 				}
 				for (var i:int = 0; i < theEmitter.members.length; i++) {
 					FlxParticle(theEmitter.members[i]).acceleration.y = 0;
