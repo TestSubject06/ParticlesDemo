@@ -90,6 +90,12 @@ package
 			wall.visible = wall.solid = false;
 			wall.immovable = true;
 			wallsGroup.add(wall);
+
+                        //Please note that this demo makes the walls themselves not collide, for the sake of simplicity.
+                        //Normally you would make the particles have solid = true or false to make them collide or not on creation,
+                        //because in a normal environment your particles probably aren't going to change solidity at a mouse 
+                        //click. If they did, you would probably be better suited with emitter.setAll("solid", true)
+                        //I just don't feel that setAll is applicable here(Since I would still have to toggle the walls anyways)
 			
 			//Don't forget to add the group to the state(Like I did :P)
 			add(wallsGroup);
